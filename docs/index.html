@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grid Surge — Retro Block Arcade</title>
+  <meta name="description" content="Grid Surge: retro block-stacking arcade with casino side bets, horse racing, leaderboards, power-ups, and friend battles. Developed by KJB." />
+  <meta property="og:title" content="Grid Surge" />
+  <meta property="og:description" content="Place. Clear. Survive. The ultimate retro block arcade — with casino, horse racing, leaderboards and friends." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://kadenbates5-hash.github.io/grid-surge/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;600;700;800&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #070d1a;
+      --bg2: #0d1626;
+      --blue: #7dd3fc;
+      --blue2: #38bdf8;
+      --blue3: #0ea5e9;
+      --gold: #fbbf24;
+      --green: #34d399;
+      --purple: #a78bfa;
+      --pink: #f472b6;
+      --orange: #fb923c;
+      --muted: #4a5580;
+      --border: #1e3050;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: #e2e8f0;
+      font-family: 'Courier Prime', 'Courier New', monospace;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── SCANLINES ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.035) 3px, rgba(0,0,0,0.035) 4px);
+    }
+
+    /* ── STARS ── */
+    .stars {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse at 20% 30%, #1a2a4a22 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 70%, #0a1a3a22 0%, transparent 60%);
+    }
+    .star {
+      position: absolute; border-radius: 50%;
+      background: white; animation: twinkle var(--d, 3s) var(--delay, 0s) ease-in-out infinite alternate;
+    }
+    @keyframes twinkle { from { opacity: 0.1; } to { opacity: 0.8; } }
+
+    /* ── LAYOUT ── */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(7,13,26,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'Oxanium', sans-serif; font-weight: 800; font-size: 1.1rem;
+      letter-spacing: 0.05em;
+      background: linear-gradient(135deg, var(--blue), var(--blue2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--muted); font-size: 0.65rem; margin-left: 6px; vertical-align: middle; -webkit-text-fill-color: var(--muted); }
+    .nav-play {
+      background: var(--blue); color: #070d1a;
+      font-family: 'Courier Prime', monospace; font-weight: 700;
+      font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 8px 20px; border-radius: 6px; text-decoration: none;
+      box-shadow: 0 0 16px #7dd3fc44;
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .nav-play:hover { background: var(--blue2); box-shadow: 0 0 28px #7dd3fc66; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100dvh; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center; padding: 100px 20px 60px;
+      position: relative;
+    }
+    .hero-eyebrow {
+      font-size: 0.65rem; letter-spacing: 0.35em; color: var(--blue2);
+      text-transform: uppercase; margin-bottom: 18px;
+    }
+    .hero-title {
+      font-family: 'Oxanium', sans-serif; font-weight: 800;
+      font-size: clamp(3rem, 14vw, 7rem); line-height: 0.95;
+      letter-spacing: -0.01em;
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue2) 40%, #fff 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-shadow: none;
+      filter: drop-shadow(0 0 40px #7dd3fc44);
+    }
+    .hero-title .surge { color: var(--blue2); }
+    .hero-sub {
+      font-size: clamp(1rem, 3vw, 1.25rem); color: var(--muted);
+      letter-spacing: 0.2em; text-transform: uppercase; margin-top: 12px;
+    }
+    .hero-desc {
+      max-width: 480px; font-size: 0.95rem; color: #94a3b8;
+      margin: 24px auto 0; line-height: 1.7;
+    }
+    .hero-cta {
+      display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 36px;
+    }
+    .btn-primary {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--blue), var(--blue2));
+      color: #070d1a; font-family: 'Courier Prime', monospace;
+      font-weight: 700; font-size: 0.9rem; letter-spacing: 0.15em;
+      text-transform: uppercase; padding: 14px 32px; border-radius: 8px;
+      text-decoration: none; box-shadow: 0 0 24px #7dd3fc55;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px #7dd3fc77; }
+    .btn-secondary {
+      display: inline-block;
+      border: 1px solid var(--border); color: var(--blue);
+      font-family: 'Courier Prime', monospace; font-weight: 700;
+      font-size: 0.9rem; letter-spacing: 0.15em; text-transform: uppercase;
+      padding: 14px 32px; border-radius: 8px; text-decoration: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--blue); background: #7dd3fc11; }
+
+    /* ── ANIMATED GRID PREVIEW ── */
+    .grid-preview {
+      display: grid; grid-template-columns: repeat(7, 28px); gap: 3px;
+      margin: 48px auto 0; padding: 14px; border-radius: 12px;
+      background: var(--bg2); border: 1px solid var(--border);
+      box-shadow: 0 0 40px #7dd3fc18, 0 0 80px #7dd3fc08;
+    }
+    .grid-cell {
+      width: 28px; height: 28px; border-radius: 4px;
+      transition: opacity 0.3s;
+    }
+    .grid-cell.empty { background: #0d1626; border: 1px solid #1e3050; opacity: 0.4; }
+
+    /* ── FEATURES ── */
+    .section { padding: 80px 20px; }
+    .section-label {
+      font-size: 0.6rem; letter-spacing: 0.4em; color: var(--blue2);
+      text-transform: uppercase; margin-bottom: 12px; text-align: center;
+    }
+    .section-title {
+      font-family: 'Oxanium', sans-serif; font-weight: 700;
+      font-size: clamp(1.6rem, 5vw, 2.4rem); text-align: center;
+      color: #f1f5f9; margin-bottom: 12px;
+    }
+    .section-sub {
+      text-align: center; color: var(--muted); font-size: 0.9rem;
+      max-width: 480px; margin: 0 auto 48px;
+    }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;
+    }
+    .feature-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 24px 20px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .feature-card:hover {
+      border-color: #7dd3fc44;
+      box-shadow: 0 0 20px #7dd3fc18;
+    }
+    .feature-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .feature-name {
+      font-family: 'Oxanium', sans-serif; font-weight: 700; font-size: 0.95rem;
+      color: var(--blue); letter-spacing: 0.05em; margin-bottom: 6px;
+    }
+    .feature-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+    /* ── CASINO SECTION ── */
+    .casino-cards {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
+      margin-top: 40px;
+    }
+    .casino-card {
+      border-radius: 12px; padding: 28px 20px; text-align: center;
+      border: 1px solid var(--border); background: var(--bg2);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .casino-card:hover { transform: translateY(-4px); }
+    .casino-card.bj { border-color: #fbbf2433; box-shadow: 0 0 20px #fbbf2408; }
+    .casino-card.rl { border-color: #ef444433; box-shadow: 0 0 20px #ef444408; }
+    .casino-card.hr { border-color: #34d39933; box-shadow: 0 0 20px #34d39908; }
+    .casino-card .big-icon { font-size: 2.8rem; margin-bottom: 12px; }
+    .casino-card h3 { font-family: 'Oxanium', sans-serif; font-weight: 700; font-size: 1rem; margin-bottom: 6px; }
+    .casino-card p { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── LEADERBOARD PREVIEW ── */
+    .lb-preview {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden; max-width: 500px; margin: 0 auto;
+    }
+    .lb-header {
+      display: flex; padding: 10px 16px; border-bottom: 1px solid var(--border);
+      font-size: 0.6rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase;
+    }
+    .lb-row {
+      display: flex; align-items: center; padding: 10px 16px;
+      border-bottom: 1px solid #111828; font-size: 0.82rem;
+      transition: background 0.15s;
+    }
+    .lb-row:hover { background: #0f1a2e; }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-rank { width: 36px; font-weight: 700; }
+    .lb-name { flex: 1; color: #cbd5e1; }
+    .lb-level { width: 50px; color: var(--muted); text-align: right; }
+    .lb-score { width: 80px; text-align: right; font-weight: 700; }
+
+    /* ── LEVELS SECTION ── */
+    .levels-strip {
+      display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 32px;
+    }
+    .level-pip {
+      width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; font-size: 0.65rem; font-weight: 700; border: 1px solid;
+      font-family: 'Oxanium', sans-serif;
+    }
+
+    /* ── SOCIAL PROOF ── */
+    .badges {
+      display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 40px;
+    }
+    .badge {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 100px; padding: 8px 16px;
+      font-size: 0.75rem; color: #94a3b8;
+    }
+    .badge strong { color: var(--blue); }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      padding: 80px 20px; text-align: center;
+      background: linear-gradient(135deg, #0d1626 0%, #0a1420 100%);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .cta-title {
+      font-family: 'Oxanium', sans-serif; font-weight: 800;
+      font-size: clamp(1.8rem, 6vw, 3rem); color: #f1f5f9;
+      margin-bottom: 12px;
+    }
+    .cta-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 32px; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 32px 20px; text-align: center;
+      border-top: 1px solid var(--border); color: var(--muted); font-size: 0.75rem;
+    }
+    footer a { color: var(--blue); text-decoration: none; }
+    footer a:hover { color: var(--blue2); }
+
+    /* ── POWER-UP STRIP ── */
+    .powers {
+      display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 32px;
+    }
+    .power-pill {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 100px; font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.05em; border: 1px solid;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 0;
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 480px) {
+      .grid-preview { grid-template-columns: repeat(7, 22px); gap: 2px; }
+      .grid-cell { width: 22px; height: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- STARS BG -->
+<div class="stars" id="stars"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">GRID<span style="font-family:'Oxanium';font-weight:800;-webkit-text-fill-color:var(--blue2)">SURGE</span><span>by KJB</span></a>
+  <a href="https://www.perplexity.ai/computer/a/grid-surge-YRJLnAk9RdyNpPN2FXcAmw" target="_blank" class="nav-play">&#9654; Play Now</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <p class="hero-eyebrow">Developed by KJB &nbsp;·&nbsp; Free to Play</p>
+    <h1 class="hero-title">GRID<br><span class="surge">SURGE</span></h1>
+    <p class="hero-sub">Place &nbsp;·&nbsp; Clear &nbsp;·&nbsp; Survive</p>
+    <p class="hero-desc">
+      A retro baby-blue block arcade with casino side bets, horse racing,
+      global leaderboards, power-ups, and friend battles. Available on any device, any browser.
+    </p>
+    <div class="hero-cta">
+      <a href="https://www.perplexity.ai/computer/a/grid-surge-YRJLnAk9RdyNpPN2FXcAmw" target="_blank" class="btn-primary">&#9654; &nbsp;Play Free</a>
+      <a href="https://github.com/kadenbates5-hash/grid-surge" target="_blank" class="btn-secondary">View Source</a>
+    </div>
+
+    <!-- ANIMATED GRID -->
+    <div class="grid-preview" id="gridPreview"></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<section class="section">
+  <div class="container">
+    <p class="section-label">What you get</p>
+    <h2 class="section-title">Everything in one place</h2>
+    <p class="section-sub">Compete, gamble, level up, and connect with friends — all inside Grid Surge.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎮</div>
+        <div class="feature-name">7x7 ARCADE GRID</div>
+        <div class="feature-desc">Drag-drop pieces onto a compact 7x7 grid. Clear full rows and columns — both directions count. Every line clear resets the surge clock.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔴</div>
+        <div class="feature-name">THE SURGE</div>
+        <div class="feature-desc">A wall of red rises every 30 seconds. Clear lines to push it back. Run out of moves or let it reach the top — game over.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-name">POWER-UPS</div>
+        <div class="feature-desc">Freeze the surge for 5, 10, or 30 seconds. Bomb surge rows. Clear a full row or wipe the entire board. Buy them with coins or earn them leveling up.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⭐</div>
+        <div class="feature-name">20 LEVELS</div>
+        <div class="feature-desc">Earn XP every game. Each level up grants coins or a free power-up. Higher levels require exponentially more XP — only the dedicated reach the top.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏆</div>
+        <div class="feature-name">GLOBAL RANKS</div>
+        <div class="feature-desc">One entry per player on the leaderboard. Your best score earns your rank. Compete for the top 20 spots worldwide.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <div class="feature-name">FRIEND SYSTEM</div>
+        <div class="feature-desc">Every player gets a unique 6-char Friend ID. Send requests, view friend stats, track who is climbing the ranks faster than you.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CASINO -->
+<section class="section">
+  <div class="container">
+    <p class="section-label">The Casino</p>
+    <h2 class="section-title">Risk it for more power</h2>
+    <p class="section-sub">Bet your in-game coins or power-ups across three casino games. Win big, or lose it all.</p>
+    <div class="casino-cards">
+      <div class="casino-card bj">
+        <div class="big-icon">🃏</div>
+        <h3 style="color:#fbbf24">BLACKJACK</h3>
+        <p>Animated card deal. Beat the dealer. Stake coins or wager a power-up for a chance to win double.</p>
+      </div>
+      <div class="casino-card rl">
+        <div class="big-icon">🎡</div>
+        <h3 style="color:#ef4444">ROULETTE</h3>
+        <p>A live spinning wheel that slows and stops on the winning number. Bet red, black, or a dozen range.</p>
+      </div>
+      <div class="casino-card hr">
+        <div class="big-icon">🏇</div>
+        <h3 style="color:#34d399">HORSE RACING</h3>
+        <p>Six horses, different payout odds from 2.5x to 12x. Watch the race live. Your horse either wins or doesn't.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- POWER-UPS -->
+<section class="section">
+  <div class="container">
+    <p class="section-label">Arsenal</p>
+    <h2 class="section-title">7 Power-Ups</h2>
+    <p class="section-sub">Buy with coins, earn by leveling up, or win them at the casino.</p>
+    <div class="powers">
+      <div class="power-pill" style="color:#7dd3fc;border-color:#7dd3fc44;background:#7dd3fc11">❄ Freeze 5s</div>
+      <div class="power-pill" style="color:#38bdf8;border-color:#38bdf844;background:#38bdf811">🧊 Freeze 10s</div>
+      <div class="power-pill" style="color:#0ea5e9;border-color:#0ea5e944;background:#0ea5e911">☃️ Freeze 30s</div>
+      <div class="power-pill" style="color:#818cf8;border-color:#818cf844;background:#818cf811">💠 Clear Row</div>
+      <div class="power-pill" style="color:#34d399;border-color:#34d39944;background:#34d39911">🌊 Clear All</div>
+      <div class="power-pill" style="color:#fb923c;border-color:#fb923c44;background:#fb923c11">💥 Bomb</div>
+      <div class="power-pill" style="color:#a78bfa;border-color:#a78bfa44;background:#a78bfa11">🔀 Refresh</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- LEADERBOARD PREVIEW -->
+<section class="section">
+  <div class="container">
+    <p class="section-label">Global Rankings</p>
+    <h2 class="section-title">Top of the board</h2>
+    <p class="section-sub">One entry per player. Your best score earns your place. Login to compete.</p>
+    <div class="lb-preview">
+      <div class="lb-header">
+        <span style="width:36px">#</span>
+        <span style="flex:1">Player</span>
+        <span style="width:50px;text-align:right">Lv</span>
+        <span style="width:80px;text-align:right">Score</span>
+      </div>
+      <div class="lb-row">
+        <span class="lb-rank" style="color:#facc15">🥇</span>
+        <span class="lb-name">SurgeKing</span>
+        <span class="lb-level">12</span>
+        <span class="lb-score" style="color:#facc15">128,400</span>
+      </div>
+      <div class="lb-row">
+        <span class="lb-rank" style="color:#94a3b8">🥈</span>
+        <span class="lb-name">PixelGhost</span>
+        <span class="lb-level">9</span>
+        <span class="lb-score" style="color:#94a3b8">97,250</span>
+      </div>
+      <div class="lb-row">
+        <span class="lb-rank" style="color:#fb923c">🥉</span>
+        <span class="lb-name">NeonBolt</span>
+        <span class="lb-level">8</span>
+        <span class="lb-score" style="color:#fb923c">84,600</span>
+      </div>
+      <div class="lb-row">
+        <span class="lb-rank" style="color:#4a5580">#4</span>
+        <span class="lb-name">DarkGrid99</span>
+        <span class="lb-level">7</span>
+        <span class="lb-score" style="color:#7dd3fc">71,800</span>
+      </div>
+      <div class="lb-row">
+        <span class="lb-rank" style="color:#4a5580">#5</span>
+        <span class="lb-name">You?</span>
+        <span class="lb-level">—</span>
+        <span class="lb-score" style="color:#4a5580">???</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TECH / OPEN SOURCE -->
+<section class="section">
+  <div class="container">
+    <p class="section-label">Open Source</p>
+    <h2 class="section-title">Built in public</h2>
+    <p class="section-sub">Full-stack TypeScript. React frontend, Express backend. Free to fork, modify, and deploy.</p>
+    <div class="badges">
+      <div class="badge"><strong>React 18</strong> frontend</div>
+      <div class="badge"><strong>Express.js</strong> backend</div>
+      <div class="badge"><strong>TypeScript</strong> full-stack</div>
+      <div class="badge"><strong>Tailwind CSS</strong> v3</div>
+      <div class="badge"><strong>JWT</strong> auth</div>
+      <div class="badge"><strong>Vite</strong> build</div>
+      <div class="badge"><strong>MIT</strong> license</div>
+    </div>
+    <div style="text-align:center;margin-top:32px">
+      <a href="https://github.com/kadenbates5-hash/grid-surge" target="_blank" class="btn-secondary">
+        ⭐ &nbsp;Star on GitHub
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA SECTION -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-title">Ready to surge?</h2>
+    <p class="cta-sub">Free to play. No download. Works on any device.</p>
+    <a href="https://www.perplexity.ai/computer/a/grid-surge-YRJLnAk9RdyNpPN2FXcAmw" target="_blank" class="btn-primary" style="font-size:1rem;padding:16px 40px">
+      &#9654; &nbsp;Play Grid Surge Free
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p style="margin-bottom:6px">
+    <strong style="color:var(--blue)">GRID SURGE</strong> &nbsp;·&nbsp; Developed by KJB
+  </p>
+  <p>
+    <a href="https://github.com/kadenbates5-hash/grid-surge" target="_blank">GitHub</a>
+    &nbsp;·&nbsp;
+    <a href="https://www.perplexity.ai/computer/a/grid-surge-YRJLnAk9RdyNpPN2FXcAmw" target="_blank">Play Now</a>
+    &nbsp;·&nbsp;
+    <span style="color:var(--muted)">MIT License</span>
+  </p>
+  <p style="margin-top:8px;color:#2a3460">Built with Perplexity Computer</p>
+</footer>
+
+<script>
+  // ── STARS ──
+  const starsEl = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const size = 1 + Math.random() * 2;
+    s.style.cssText = `
+      width:${size}px; height:${size}px;
+      top:${Math.random()*100}%;
+      left:${Math.random()*100}%;
+      --d:${2+Math.random()*4}s;
+      --delay:${Math.random()*4}s;
+    `;
+    starsEl.appendChild(s);
+  }
+
+  // ── GRID PREVIEW ──
+  const COLORS = ['#7dd3fc','#818cf8','#34d399','#fb923c','#f472b6','#fbbf24','#60a5fa','#c084fc'];
+  const PRESET = [
+    1,0,2,0,3,0,4,
+    0,5,0,6,0,7,0,
+    2,0,1,0,4,0,3,
+    0,5,3,1,0,7,0,
+    1,0,2,0,3,0,4,
+    0,2,0,3,0,5,0,
+    2,3,1,0,7,5,4
+  ];
+  const grid = document.getElementById('gridPreview');
+  PRESET.forEach((v, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'grid-cell' + (v === 0 ? ' empty' : '');
+    if (v !== 0) {
+      const c = COLORS[v - 1];
+      cell.style.cssText = `background:${c};box-shadow:0 0 6px ${c}66;`;
+    }
+    grid.appendChild(cell);
+  });
+
+  // Animate grid: randomly toggle cells for a "live" effect
+  function animateGrid() {
+    const cells = grid.querySelectorAll('.grid-cell');
+    const idx = Math.floor(Math.random() * cells.length);
+    const cell = cells[idx];
+    if (cell.classList.contains('empty')) {
+      const c = COLORS[Math.floor(Math.random() * COLORS.length)];
+      cell.classList.remove('empty');
+      cell.style.cssText = `background:${c};box-shadow:0 0 6px ${c}66;`;
+      setTimeout(() => {
+        cell.classList.add('empty');
+        cell.style.cssText = '';
+      }, 800 + Math.random() * 1200);
+    }
+    setTimeout(animateGrid, 200 + Math.random() * 600);
+  }
+  setTimeout(animateGrid, 1500);
+</script>
+</body>
+</html>
