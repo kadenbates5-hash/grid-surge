@@ -8,7 +8,7 @@
 
 ## Play Now
 
-**[grid-surge.vercel.app](https://www.perplexity.ai/computer/a/grid-surge-YRJLnAk9RdyNpPN2FXcAmw)** — Live hosted version, playable on mobile and desktop.
+**[grid-surge.vercel.app](https://grid-surge.vercel.app)** — Live hosted version, playable on mobile and desktop.
 
 ---
 
@@ -30,10 +30,10 @@
 
 ## Tech Stack
 
-- **Frontend** — React 18, Vite, Tailwind CSS v3, shadcn/ui, TanStack Query
-- **Backend** — Express.js, JWT auth, bcryptjs, in-memory storage
-- **Language** — TypeScript (full-stack)
-- **Build** — Vite + esbuild monorepo
+• **Frontend** — React 18, Vite, Tailwind CSS v3, shadcn/ui, TanStack Query  
+• **Backend** — Express.js, JWT auth, bcryptjs, in-memory storage  
+• **Language** — TypeScript (full-stack)  
+• **Build** — Vite + esbuild monorepo
 
 ---
 
@@ -41,8 +41,8 @@
 
 ### Prerequisites
 
-- Node.js 18+
-- npm 9+
+• Node.js 18+  
+• npm 9+
 
 ### Setup
 
@@ -79,18 +79,18 @@ grid-surge/
 ├── client/
 │   ├── index.html
 │   └── src/
-│       ├── components/       # GameTab, CasinoTab, ShopTab, FriendsTab, LeaderboardTab
-│       ├── context/          # AuthContext (JWT + Remember Me)
-│       ├── lib/              # apiRequest, auth helpers
-│       └── pages/            # MainApp, not-found
+│       ├── components/     # GameTab, CasinoTab, ShopTab, FriendsTab, LeaderboardTab
+│       ├── context/        # AuthContext (JWT + Remember Me)
+│       ├── lib/            # apiRequest, auth helpers
+│       └── pages/          # MainApp, not-found
 ├── server/
-│   ├── index.ts              # Express entrypoint
-│   ├── routes.ts             # All API routes
-│   ├── storage.ts            # In-memory MemStorage
-│   └── vite.ts               # Dev server integration
+│   ├── index.ts            # Express entrypoint
+│   ├── routes.ts           # All API routes
+│   ├── storage.ts          # In-memory MemStorage
+│   └── vite.ts             # Dev server integration
 ├── shared/
-│   └── schema.ts             # Types, power-up defs, DB schema
-└── dist/                     # Build output (gitignored)
+│   └── schema.ts           # Types, power-up defs, DB schema
+└── dist/                   # Build output (gitignored)
 ```
 
 ---
@@ -131,4 +131,4 @@ MIT — free to use, modify, and deploy.
 
 ---
 
-*Developed by KJB · Built with Perplexity Computer*
+**Developed by KJB**
