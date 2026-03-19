@@ -97,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       id: 0,
       username: 'Guest',
       email: 'guest@gridsurge.com',
-      credits: 0,
+      credits:5000,
       winnings: 0,
       isGuest: true
     };
