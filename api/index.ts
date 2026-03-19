@@ -3,8 +3,8 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStoreFactory from "memorystore";
-import { registerRoutes } from "../server/routes";
-import { serveStatic } from "../server/static";
+import { registerRoutes } from "../server/routes.js";
+import { serveStatic } from "../server/static.js";
 import { createServer } from "http";
 
 const MemoryStore = MemoryStoreFactory(session);
