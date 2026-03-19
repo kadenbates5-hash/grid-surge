@@ -76,6 +76,17 @@ app.use((req, res, next) => {
   next();
 });
 
+
+// Middleware to ensure initialization before handling requests
+let initPromise: Promise<void> | null = null;
+
+app.use(async (req, res, next) => {
+  if (!initPromise) {
+    initPromise = initializeApp();
+  }
+  await initPromise;
+  next();
+});
 // Initialize app synchronously before export
 let isInitialized = false;
 
@@ -103,8 +114,6 @@ async function initializeApp() {
   isInitialized = true;
 }
 
-// Initialize immediately
-initializeApp().catch(console.error);
 
 // Export the Express app for Vercel
 export default app;
