@@ -1,4 +1,4 @@
-// Vercel-specific entry point that exports the Express app
+// Vercel serverless entry point
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import MemoryStoreFactory from "memorystore";
@@ -76,8 +76,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Initialize routes asynchronously
-(async () => {
+// Initialize app synchronously before export
+let isInitialized = false;
+
+async function initializeApp() {
+  if (isInitialized) return;
+  
   await registerRoutes(httpServer, app);
   
   app.use((err: any, _req: Request, res: Response, next: NextFunction) => {
@@ -95,7 +99,12 @@ app.use((req, res, next) => {
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   }
-})();
+  
+  isInitialized = true;
+}
+
+// Initialize immediately
+initializeApp().catch(console.error);
 
 // Export the Express app for Vercel
 export default app;
