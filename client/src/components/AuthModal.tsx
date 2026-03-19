@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 export default function AuthModal({ onClose }: { onClose: () => void }) {
-  const { login, register } = useAuth();
+  const { login, register, continueAsGuest } = useAuth();
   const [mode, setMode] = useState<"login"|"register">("login");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -60,6 +60,12 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
           style={{ background:"#7dd3fc", boxShadow:"0 0 16px #7dd3fc44" }}>
           {loading ? "..." : mode === "login" ? "LOGIN" : "CREATE ACCOUNT"}
         </button>
+        
+              <button onClick={() => { continueAsGuest(); onClose(); }} 
+                className="w-full py-2 text-sm retro-btn rounded text-[#7dd3fc] border border-[#1e2840] hover:border-[#7dd3fc44]"
+              >
+                CONTINUE AS GUEST
+              </button>
         <div className="text-[0.55rem] text-[#2a3560] text-center retro-btn">
           500 coins awarded on first login · Developed by KJB
         </div>
